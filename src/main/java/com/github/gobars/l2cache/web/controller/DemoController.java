@@ -17,6 +17,14 @@ public class DemoController {
     return 1L;
   }
 
+  /**
+   * 演示缓存API.
+   *
+   * <p>curl -X POST 'http://127.0.0.1:8080/demo/able' -H 'Content-Type: application/json' --data-raw '{"id":300579}'
+   *
+   * @param person
+   * @return
+   */
   @RequestMapping("/demo/able")
   public Person cacheable(@RequestBody Person person) {
     return demoService.findOne(person);
