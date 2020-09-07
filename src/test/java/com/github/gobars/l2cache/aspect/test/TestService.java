@@ -100,12 +100,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       l1 = @L1(expireSecs = 4),
-      l2 =
-          @L2(
-              expireSecs = 10,
-              preloadSecs = 3,
-              forceRefresh = true,
-              magnification = 1))
+      l2 = @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
   public User getNullUser(Long userId) {
     log.debug("缓存方法返回NULL");
     return null;
@@ -116,12 +111,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       l1 = @L1(expireSecs = 4),
-      l2 =
-          @L2(
-              expireSecs = 100,
-              preloadSecs = 70,
-              forceRefresh = true,
-              magnification = 10))
+      l2 = @L2(expireSecs = 100, preloadSecs = 70, forceRefresh = true))
   public User getNullUserAllowNullValueTrueMagnification(Long userId) {
     log.debug("缓存方法返回NULL");
     return null;
@@ -328,8 +318,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       firstCache = @L1(expireSecs = 4),
-      secondaryCache =
-          @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
   public User putUser(long userId) {
     return new User();
   }
@@ -338,8 +327,7 @@ public class TestService {
       value = "user:info",
       firstCache = @L1(expireSecs = 4),
       ignoreException = false,
-      secondaryCache =
-          @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
   public User putUserNoParam() {
     User user = new User();
     return user;
@@ -350,8 +338,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       firstCache = @L1(expireSecs = 4),
-      secondaryCache =
-          @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 10, preloadSecs = 3, forceRefresh = true))
   public User putNullUser1118(long userId) {
 
     return null;
@@ -361,8 +348,7 @@ public class TestService {
       value = "user:info",
       ignoreException = false,
       firstCache = @L1(expireSecs = 40),
-      secondaryCache =
-          @L2(expireSecs = 100, preloadSecs = 30, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 100, preloadSecs = 30, forceRefresh = true))
   public User putUserNoKey(long userId, String[] lastName, User user) {
     return user;
   }
@@ -387,12 +373,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       firstCache = @L1(expireSecs = 4),
-      secondaryCache =
-          @L2(
-              expireSecs = 40,
-              preloadSecs = 30,
-              forceRefresh = true,
-              magnification = 10))
+      secondaryCache = @L2(expireSecs = 40, preloadSecs = 30, forceRefresh = true))
   public User putNullUserAllowNullValueTrueMagnification(long userId) {
 
     return null;
@@ -403,8 +384,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       firstCache = @L1(expireSecs = 4),
-      secondaryCache =
-          @L2(expireSecs = 10, preloadSecs = 7, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 10, preloadSecs = 7, forceRefresh = true))
   public User putNullUserAllowNullValueFalse(long userId) {
 
     return null;
@@ -415,8 +395,7 @@ public class TestService {
       key = "#userId",
       ignoreException = false,
       firstCache = @L1(expireSecs = 4),
-      secondaryCache =
-          @L2(expireSecs = 100, preloadSecs = 3, forceRefresh = true))
+      secondaryCache = @L2(expireSecs = 100, preloadSecs = 3, forceRefresh = true))
   public User putUserById(long userId) {
     User user = new User();
     user.setUserId(userId);

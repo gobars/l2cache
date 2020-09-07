@@ -23,9 +23,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collection;
 
-// SpringJUnit4ClassRunner再Junit环境下提供Spring TestContext Framework的功能。
 @RunWith(SpringJUnit4ClassRunner.class)
-// @ContextConfiguration用来加载配置ApplicationContext，其中classes用来加载配置类
 @ContextConfiguration(classes = {CacheConfig.class})
 @Slf4j
 public class CacheCoreTest {
@@ -33,7 +31,6 @@ public class CacheCoreTest {
   @Autowired private RedisClient redisClient;
 
   private L2Setting l2Setting1;
-  private L2Setting l2L2Setting2;
   private L2Setting l2Setting4;
   private L2Setting l2Setting5;
 
@@ -41,22 +38,22 @@ public class CacheCoreTest {
   public void testGetCache() {
     // 测试 CacheManager getCache方法
     C1Setting c1Setting0 = new C1Setting(10, 1000, 4);
-    C2Setting l1CacheSetting1 = new C2Setting(10, 4, true, 1);
+    C2Setting l1CacheSetting1 = new C2Setting(10, 4, true);
     l2Setting1 = new L2Setting(c1Setting0, l1CacheSetting1, "");
 
     // L2可以缓存null,时间倍率是1
     C1Setting c1Setting2 = new C1Setting(10, 1000, 5);
-    C2Setting c2Setting2 = new C2Setting(3000, 14, true, 1);
-    l2L2Setting2 = new L2Setting(c1Setting2, c2Setting2, "");
+    C2Setting c2Setting2 = new C2Setting(3000, 14, true);
+    L2Setting l2L2Setting2 = new L2Setting(c1Setting2, c2Setting2, "");
 
     // L2可以缓存null,时间倍率是10
     C1Setting c1Setting4 = new C1Setting(10, 1000, 5);
-    C2Setting c2Setting4 = new C2Setting(100, 70, true, 10);
+    C2Setting c2Setting4 = new C2Setting(100, 70, true);
     l2Setting4 = new L2Setting(c1Setting4, c2Setting4, "");
 
     // L2不可以缓存null
     C1Setting c1Setting5 = new C1Setting(10, 1000, 5);
-    C2Setting c2Setting5 = new C2Setting(10, 7, false, 1);
+    C2Setting c2Setting5 = new C2Setting(10, 7, false);
     l2Setting5 = new L2Setting(c1Setting5, c2Setting5, "");
 
     String cacheName = "cache:name";
@@ -66,7 +63,7 @@ public class CacheCoreTest {
 
     Cache cache3 = cacheManager.getCache(cacheName, l2L2Setting2);
     Collection<Cache> caches = cacheManager.getCache(cacheName);
-    Assert.assertTrue(caches.size() == 2);
+    Assert.assertEquals(2, caches.size());
     Assert.assertNotEquals(cache1, cache3);
   }
 
@@ -81,8 +78,8 @@ public class CacheCoreTest {
     String str1 = cache1.getCache1().get(cacheKey1, String.class);
     String st2 = cache1.getCache1().get(cacheKey1, () -> initCache(String.class));
     log.debug("========================:{}", str1);
-    Assert.assertTrue(str1.equals(st2));
-    Assert.assertTrue(str1.equals(initCache(String.class)));
+    Assert.assertEquals(str1, st2);
+    Assert.assertEquals(str1, initCache(String.class));
     sleep(5);
     Assert.assertNull(cache1.getCache1().get(cacheKey1, String.class));
     // 看日志是不是走了L2
@@ -91,8 +88,8 @@ public class CacheCoreTest {
     // 测试L2
     str1 = cache1.getCache2().get(cacheKey1, String.class);
     st2 = cache1.getCache2().get(cacheKey1, () -> initCache(String.class));
-    Assert.assertTrue(st2.equals(str1));
-    Assert.assertTrue(str1.equals(initCache(String.class)));
+    Assert.assertEquals(st2, str1);
+    Assert.assertEquals(str1, initCache(String.class));
     sleep(5);
     // 看日志是不是走了自动刷新
     RedisCacheKey redisCacheKey = ((RedisCache) cache1.getCache2()).getRedisCacheKey(cacheKey1);
@@ -114,32 +111,32 @@ public class CacheCoreTest {
     String cacheName = "cache:name:118_1";
     String cacheKey1 = "cache:key1:118_1";
     L2Cache cache1 = (L2Cache) cacheManager.getCache(cacheName, l2Setting4);
-    cache1.get(cacheKey1, () -> initNullCache());
+    cache1.get(cacheKey1, this::initNullCache);
     // 测试L1值不能缓存NULL
     String str1 = cache1.getCache1().get(cacheKey1, String.class);
     com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache =
         (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
             cache1.getCache1().getNativeCache();
-    Assert.assertTrue(str1 == null);
-    Assert.assertTrue(0 == nativeCache.asMap().size());
+    Assert.assertNull(str1);
+    Assert.assertEquals(0, nativeCache.asMap().size());
 
     // 测试L2可以存NULL值，NULL值时间倍率是10
     String st2 = cache1.getCache2().get(cacheKey1, String.class);
     RedisCacheKey redisCacheKey = ((RedisCache) cache1.getCache2()).getRedisCacheKey(cacheKey1);
     Long ttl = redisClient.getExpireSecs(redisCacheKey.getKey());
     Assert.assertTrue(redisClient.hasKey(redisCacheKey.getKey()));
-    Assert.assertTrue(st2 == null);
+    Assert.assertNull(st2);
     Assert.assertTrue(ttl <= 10);
     sleep(5);
     st2 = cache1.getCache2().get(cacheKey1, String.class);
-    Assert.assertTrue(st2 == null);
-    cache1.getCache2().get(cacheKey1, () -> initNullCache());
+    Assert.assertNull(st2);
+    cache1.getCache2().get(cacheKey1, this::initNullCache);
     sleep(1);
     ttl = redisClient.getExpireSecs(redisCacheKey.getKey());
     Assert.assertTrue(ttl <= 10 && ttl > 5);
 
     st2 = cache1.get(cacheKey1, String.class);
-    Assert.assertTrue(st2 == null);
+    Assert.assertNull(st2);
   }
 
   @Test
@@ -149,20 +146,20 @@ public class CacheCoreTest {
     String cacheName = "cache:name:118_2";
     String cacheKey1 = "cache:key1:118_2";
     L2Cache cache1 = (L2Cache) cacheManager.getCache(cacheName, l2Setting5);
-    cache1.get(cacheKey1, () -> initNullCache());
+    cache1.get(cacheKey1, this::initNullCache);
     // 测试L1值不能缓存NULL
     String str1 = cache1.getCache1().get(cacheKey1, String.class);
     com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache =
         (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
             cache1.getCache1().getNativeCache();
-    Assert.assertTrue(str1 == null);
-    Assert.assertTrue(0 == nativeCache.asMap().size());
+    Assert.assertNull(str1);
+    Assert.assertEquals(0, nativeCache.asMap().size());
 
     // 测试L2不可以存NULL值，NULL值时间倍率是10
     String st2 = cache1.getCache2().get(cacheKey1, String.class);
     RedisCacheKey redisCacheKey = ((RedisCache) cache1.getCache2()).getRedisCacheKey(cacheKey1);
-    Assert.assertTrue(!redisClient.hasKey(redisCacheKey.getKey()));
-    Assert.assertTrue(st2 == null);
+    Assert.assertFalse(redisClient.hasKey(redisCacheKey.getKey()));
+    Assert.assertNull(st2);
   }
 
   @Test
@@ -265,26 +262,26 @@ public class CacheCoreTest {
     com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache =
         (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
             cache1.getCache1().getNativeCache();
-    Assert.assertTrue(str1 == null);
-    Assert.assertTrue(0 == nativeCache.asMap().size());
+    Assert.assertNull(str1);
+    Assert.assertEquals(0, nativeCache.asMap().size());
 
     // 测试L2可以存NULL值，NULL值时间倍率是10
     String st2 = cache1.getCache2().get(cacheKey1, String.class);
     RedisCacheKey redisCacheKey = ((RedisCache) cache1.getCache2()).getRedisCacheKey(cacheKey1);
     Long ttl = redisClient.getExpireSecs(redisCacheKey.getKey());
     Assert.assertTrue(redisClient.hasKey(redisCacheKey.getKey()));
-    Assert.assertTrue(st2 == null);
+    Assert.assertNull(st2);
     Assert.assertTrue(ttl <= 10);
     sleep(5);
     st2 = cache1.getCache2().get(cacheKey1, String.class);
-    Assert.assertTrue(st2 == null);
-    cache1.getCache2().get(cacheKey1, () -> initNullCache());
+    Assert.assertNull(st2);
+    cache1.getCache2().get(cacheKey1, this::initNullCache);
     sleep(1);
     ttl = redisClient.getExpireSecs(redisCacheKey.getKey());
     Assert.assertTrue(ttl <= 10 && ttl > 5);
 
     st2 = cache1.get(cacheKey1, String.class);
-    Assert.assertTrue(st2 == null);
+    Assert.assertNull(st2);
   }
 
   @Test
@@ -300,14 +297,14 @@ public class CacheCoreTest {
     com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache =
         (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
             cache1.getCache1().getNativeCache();
-    Assert.assertTrue(str1 == null);
-    Assert.assertTrue(0 == nativeCache.asMap().size());
+    Assert.assertNull(str1);
+    Assert.assertEquals(0, nativeCache.asMap().size());
 
     // 测试L2不可以存NULL值，NULL值时间倍率是10
     String st2 = cache1.getCache2().get(cacheKey1, String.class);
     RedisCacheKey redisCacheKey = ((RedisCache) cache1.getCache2()).getRedisCacheKey(cacheKey1);
-    Assert.assertTrue(!redisClient.hasKey(redisCacheKey.getKey()));
-    Assert.assertTrue(st2 == null);
+    Assert.assertFalse(redisClient.hasKey(redisCacheKey.getKey()));
+    Assert.assertNull(st2);
   }
 
   @Test

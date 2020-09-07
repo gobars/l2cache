@@ -161,8 +161,7 @@ public class L2Aspect {
     L1 l1 = cacheable.l1();
     L2 l2 = cacheable.l2();
     val setting1 = new C1Setting(l1.initCap(), l1.maxSize(), l1.expireSecs());
-    val setting2 =
-        new C2Setting(l2.expireSecs(), l2.preloadSecs(), l2.forceRefresh(), l2.magnification());
+    val setting2 = new C2Setting(l2.expireSecs(), l2.preloadSecs(), l2.forceRefresh());
 
     L2Setting l2Setting = new L2Setting(setting1, setting2, cacheable.desc());
 
@@ -190,8 +189,7 @@ public class L2Aspect {
 
     // 删除缓存
     // 解析SpEL表达式获取cacheName和key
-    String[] cacheNames = cacheEvict.cacheNames();
-    Assert.notEmpty(cacheEvict.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
+    String[] cacheNames = cacheEvict.names();
     // 判断是否删除所有缓存数据
     if (cacheEvict.allEntries()) {
       // 删除所有缓存数据（清空）
@@ -258,8 +256,7 @@ public class L2Aspect {
    */
   private Object put(
       Invoker invoker, CachePut cachePut, Method method, Object[] args, Object target) {
-    String[] cacheNames = cachePut.cacheNames();
-    Assert.notEmpty(cachePut.cacheNames(), CACHE_NAME_ERROR_MESSAGE);
+    String[] cacheNames = cachePut.names();
     // 解析SpEL表达式获取 key
     Object key = generateKey(cachePut.key(), method, args, target);
     Assert.notNull(key, String.format(CACHE_KEY_ERROR_MESSAGE, cachePut.key()));
@@ -268,8 +265,7 @@ public class L2Aspect {
     L1 l1 = cachePut.firstCache();
     L2 l2 = cachePut.secondaryCache();
     val c1Setting = new C1Setting(l1.initCap(), l1.maxSize(), l1.expireSecs());
-    val c2Setting =
-        new C2Setting(l2.expireSecs(), l2.preloadSecs(), l2.forceRefresh(), l2.magnification());
+    val c2Setting = new C2Setting(l2.expireSecs(), l2.preloadSecs(), l2.forceRefresh());
 
     L2Setting l2Setting = new L2Setting(c1Setting, c2Setting, cachePut.desc());
 

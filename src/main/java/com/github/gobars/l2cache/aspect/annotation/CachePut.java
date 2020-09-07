@@ -17,11 +17,11 @@ import java.lang.annotation.*;
 public @interface CachePut {
 
   /**
-   * 别名 {@link #cacheNames}.
+   * 别名 {@link #names}.
    *
    * @return String[]
    */
-  @AliasFor("cacheNames")
+  @AliasFor("names")
   String[] value() default {};
 
   /**
@@ -30,7 +30,7 @@ public @interface CachePut {
    * @return String[]
    */
   @AliasFor("value")
-  String[] cacheNames() default {};
+  String[] names() default {};
 
   /**
    * 描述

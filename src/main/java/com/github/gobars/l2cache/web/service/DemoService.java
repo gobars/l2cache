@@ -32,7 +32,7 @@ public class DemoService {
   public Person findOne(Person person) {
     Person p = new Person(person.getId(), "name2", 12, "address2");
     log.info("为id、key为:{}数据做了缓存", p.getId());
-    Thread.sleep(1050);
+    Thread.sleep(850);
     return p;
   }
 }

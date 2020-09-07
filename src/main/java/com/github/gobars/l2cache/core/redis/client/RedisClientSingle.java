@@ -86,7 +86,6 @@ public class RedisClientSingle implements RedisClient {
 
   @Override
   public String set(String key, Object value, long time, TimeUnit unit) {
-
     try {
       RedisCommands<byte[], byte[]> sync = connection.sync();
       return sync.setex(
@@ -102,7 +101,6 @@ public class RedisClientSingle implements RedisClient {
 
   @Override
   public String setNxEx(String key, Object value, long time) {
-
     try {
       RedisCommands<byte[], byte[]> sync = connection.sync();
       return sync.set(
@@ -138,13 +136,11 @@ public class RedisClientSingle implements RedisClient {
 
   @Override
   public Long delete(Set<String> keys) {
-
     return delete(keys.toArray(new String[0]));
   }
 
   @Override
   public Boolean hasKey(String key) {
-
     try {
       RedisCommands<byte[], byte[]> sync = connection.sync();
       return sync.exists(getKeySerializer().serialize(key)) > 0;
@@ -203,7 +199,6 @@ public class RedisClientSingle implements RedisClient {
 
   @Override
   public Object eval(String script, List<String> keys, List<String> args) {
-
     try {
       RedisCommands<byte[], byte[]> sync = connection.sync();
       List<byte[]> bkeys =

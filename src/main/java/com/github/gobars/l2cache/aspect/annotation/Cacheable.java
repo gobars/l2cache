@@ -21,7 +21,7 @@ public @interface Cacheable {
    *
    * @return String[]
    */
-  @AliasFor("cacheNames")
+  @AliasFor("names")
   String[] value() default {};
 
   /**

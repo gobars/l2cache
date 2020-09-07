@@ -4,14 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.github.gobars.l2cache.core.redis.client.RedisClient;
 import com.github.gobars.l2cache.core.setting.C2Setting;
 import com.github.gobars.l2cache.core.stats.CacheStats;
-import com.github.gobars.l2cache.core.support.NullValue;
 import com.github.gobars.l2cache.core.support.RedisLock;
 import com.github.gobars.l2cache.core.support.ThreadAwaiter;
 import com.github.gobars.l2cache.core.support.ThreadPool;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Set;
@@ -47,13 +45,6 @@ public class RedisCache extends AbstractCache {
   private final boolean usePrefix;
 
   /**
-   * 非空值和null值之间的时间倍率，默认是1。allowNullValue=true才有效
-   *
-   * <p>如配置缓存的有效时间是200秒，倍率这设置成10， 那么当缓存value为null时，缓存的有效时间将是20秒，非空时为200秒
-   */
-  @Getter private final int magnification;
-
-  /**
    * @param name 缓存名称
    * @param redisClient redis客户端 redis 客户端
    * @param c2Setting L2配置{@link C2Setting}
@@ -67,7 +58,6 @@ public class RedisCache extends AbstractCache {
         c2Setting.getPreloadSecs(),
         c2Setting.isForceRefresh(),
         c2Setting.isUsePrefix(),
-        c2Setting.getMagnification(),
         stats);
   }
 
@@ -78,7 +68,6 @@ public class RedisCache extends AbstractCache {
    * @param preloadSecs 缓存主动在失效前强制刷新缓存的时间
    * @param forceRefresh 是否强制刷新（执行被缓存的方法），默认是false
    * @param usePrefix 是否使用缓存名称作为前缀
-   * @param magnification 非空值和null值之间的时间倍率
    * @param stats 是否开启统计模式
    */
   public RedisCache(
@@ -88,17 +77,13 @@ public class RedisCache extends AbstractCache {
       long preloadSecs,
       boolean forceRefresh,
       boolean usePrefix,
-      int magnification,
       boolean stats) {
     super(stats, name);
-
-    Assert.notNull(redisClient, "RedisTemplate 不能为NULL");
     this.redisClient = redisClient;
     this.expireSecs = expireSecs;
     this.preloadSecs = preloadSecs;
     this.forceRefresh = forceRefresh;
     this.usePrefix = usePrefix;
-    this.magnification = magnification;
   }
 
   @Override
@@ -255,14 +240,8 @@ public class RedisCache extends AbstractCache {
       return result;
     }
 
-    // 允许缓存NULL值
-    long expireSecsTime = this.expireSecs;
-    // 允许缓存NULL值且缓存为值为null时需要重新计算缓存时间
-    if (result instanceof NullValue) {
-      expireSecsTime = expireSecsTime / getMagnification();
-    }
     // 将数据放到缓存
-    redisClient.set(key.getKey(), result, expireSecsTime, TimeUnit.SECONDS);
+    redisClient.set(key.getKey(), result, this.expireSecs, TimeUnit.SECONDS);
     return result;
   }
 
@@ -270,13 +249,8 @@ public class RedisCache extends AbstractCache {
   private <T> void refreshCache(
       RedisCacheKey redisCacheKey, Callable<T> valueLoader, Object result) {
     long ttl = redisClient.getExpireSecs(redisCacheKey.getKey());
-    long preload = preloadSecs;
-    // 允许缓存NULL值，则自动刷新时间也要除以倍数
-    if ((result instanceof NullValue || result == null)) {
-      preload = preload / getMagnification();
-    }
 
-    if (ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preload) {
+    if (ttl > 0 && TimeUnit.SECONDS.toMillis(ttl) <= preloadSecs) {
       // 判断是否需要强制刷新在开启刷新线程
       if (!isForceRefresh()) {
         log.debug("redis缓存 key={} 软刷新缓存模式", redisCacheKey.getKey());
